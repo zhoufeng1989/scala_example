@@ -44,18 +44,18 @@ object Generator {
 
   def emptyLists = single(Nil)
 
-  def noEmptyLists = for{
+  def noEmptyLists: Generator[List[Int]] = for{
     head <- integers;
     tail <- lists
-  } yield head::tail
+  } yield head :: tail
 
-  def lists = for {
+  def lists: Generator[List[Int]] = for {
     x <- booleans
     list <- if (x) emptyLists else noEmptyLists
   } yield list
 }
 
-trait Tree[+T]
+trait Tree
 
 case class Leaf(x: Int) extends Tree
 
@@ -64,14 +64,14 @@ case class Inner(left: Tree, right: Tree) extends Tree
 object Tree {
   import Generator.{integers, booleans}
 
-  def leafs = for (x <- integers) yield Leaf(x)
+  def leafs: Generator[Leaf] = for (x <- integers) yield Leaf(x)
 
-  def trees = for {
+  def trees: Generator[Tree] = for {
     isLeaf <- booleans;
     tree <- if (isLeaf) leafs else inners
   } yield tree
 
-  def inners = for {
+  def inners: Generator[Inner] = for {
     left <- trees;
     right <- trees
   } yield Inner(left ,right)
