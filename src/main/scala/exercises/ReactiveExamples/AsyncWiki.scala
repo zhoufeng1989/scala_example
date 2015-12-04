@@ -7,14 +7,11 @@ package exercises.ReactiveExamples
 import rx.lang.scala.Observable
 import scala.concurrent.Future
 import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.Await
-import scala.concurrent.duration._
 import java.util.Scanner
 import java.net.URL
 
 object AsyncWiki extends App {
-  def fetchWikiArticles(wikiArticleNames: List[String]): Future[List[String]] =
-    Future.sequence(
+  def fetchWikiArticles(wikiArticleNames: List[String]): List[Future[String]] =
       wikiArticleNames.map(
         articleName => Future {
           val url = "https://en.wikipedia.org/wiki/" + articleName
@@ -22,10 +19,10 @@ object AsyncWiki extends App {
           art
         }
       )
-    )
 
-  val future = fetchWikiArticles(List("hello"))
-  val observable = Observable.from(future)
-  observable.subscribe(println(_))
+  val futures = fetchWikiArticles(List("hello", "world", "test"))
+  val obs = futures.foldRight(Observable[String](observer => observer.onCompleted()))(
+    (x, z) => z.mergeDelayError(Observable.from(x)))
+  obs.subscribe(println(_))
   readLine()
 }
