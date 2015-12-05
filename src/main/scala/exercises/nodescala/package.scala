@@ -11,7 +11,6 @@ import scala.util.control.NonFatal
 import scala.concurrent._
 import scala.concurrent.duration._
 import ExecutionContext.Implicits.global
-import scala.async.Async.{async, await}
 
 /** Contains basic data types, data structures and `Future` extensions.
   */
@@ -123,7 +122,7 @@ package object nodescala {
       */
     def continue[S](cont: Try[T] => S): Future[S] = {
       val promise = Promise[S]()
-      f.onComplete(promise.complete(_))
+      f.onComplete(r => promise.complete(Try(cont(r))))
       promise.future
     }
 
